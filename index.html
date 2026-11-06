@@ -4007,7 +4007,15 @@ main:focus { outline: none; }
 
   /* ---- 首頁彈窗輪播 ---- */
   var popup = $('popup'), popTrack = $('popTrack'), popDots = $('popDots');
-  var popSlides = popTrack.children, popN = popSlides.length, popIdx = 0, popTimer, popShown = false, popLast;
+  var popSlides = [].slice.call(popTrack.children), popN = popSlides.length, popIdx = 0, popTimer, popShown = false, popLast;
+  /* 無限循環：最前面放最後一張的複本、最後面放第一張的複本，滑到盡頭時無縫接回 */
+  if (popN > 1) {
+    var popCl = function (el) { var c = el.cloneNode(true); c.classList.add('pop-clone'); c.setAttribute('aria-hidden', 'true'); c.tabIndex = -1; c.removeAttribute('id'); [].forEach.call(c.querySelectorAll('[id]'), function (x) { x.removeAttribute('id'); }); return c; };
+    popTrack.insertBefore(popCl(popSlides[popN - 1]), popSlides[0]); popTrack.appendChild(popCl(popSlides[0]));
+  }
+  var popOff = popN > 1 ? 1 : 0;
+  function popPos(raw, anim) { popTrack.style.transition = anim ? '' : 'none'; popTrack.style.transform = 'translateX(-' + ((raw + popOff) * 100) + '%)'; if (!anim) void popTrack.offsetWidth; }
+  popTrack.addEventListener('transitionend', function (e) { if (e.target !== popTrack) return; popPos(popIdx, false); });
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   for (var d = 0; d < popN; d++) {
     (function (k) {
@@ -4019,8 +4027,8 @@ main:focus { outline: none; }
   }
   if (popN < 2) { $('popPrev').hidden = true; $('popNext').hidden = true; popDots.hidden = true; }
   function popGo(i) {
-    popIdx = (i + popN) % popN;
-    popTrack.style.transform = 'translateX(-' + (popIdx * 100) + '%)';
+    var raw = i; popIdx = (i + popN) % popN;
+    if (popGo.first || reduceMotion) { popPos(popIdx, false); popGo.first = false; } else popPos(raw, true);
     Array.prototype.forEach.call(popDots.children, function (b, k) { b.setAttribute('aria-current', k === popIdx ? 'true' : 'false'); });
     Array.prototype.forEach.call(popSlides, function (sl, k) { sl.setAttribute('aria-hidden', k === popIdx ? 'false' : 'true'); sl.tabIndex = k === popIdx ? 0 : -1; });
   }
@@ -4029,7 +4037,7 @@ main:focus { outline: none; }
   function openPopup() {
     popShown = true; popLast = document.activeElement;
     popup.hidden = false; document.body.style.overflow = 'hidden';
-    popGo(0); popAuto(); $('popClose').focus();
+    popGo.first = true; popGo(0); popAuto(); $('popClose').focus();
   }
   function closePopup() {
     popStop(); popup.hidden = true; document.body.style.overflow = '';
@@ -4051,7 +4059,7 @@ main:focus { outline: none; }
       var mx = e.clientX - sx, my = e.clientY - sy;
       if (!drag) { if (Math.abs(mx) < 6) return; if (Math.abs(my) > Math.abs(mx)) { sx = null; return; } drag = true; popTrack.classList.add('dragging'); }
       dx = mx; moved = true;
-      popTrack.style.transform = 'translateX(calc(-' + (popIdx * 100) + '% + ' + dx + 'px))';
+      popTrack.style.transform = 'translateX(calc(-' + ((popIdx + popOff) * 100) + '% + ' + dx + 'px))';
     });
     function end() {
       if (sx === null) return; sx = null; popTrack.classList.remove('dragging');
