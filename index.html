@@ -175,7 +175,7 @@ body { overflow-x: clip; }
 /* ========== 首頁彈窗輪播 360×618 ========== */
 .popup { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: rgba(0,0,0,.55); padding: 16px; }
 .popup[hidden] { display: none; }
-.pop-panel { position: relative; width: min(340px, calc(100vw - 56px), calc((100vh - 170px) * 360 / 618)); aspect-ratio: 360 / 618; background: var(--page); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.pop-panel { position: relative; width: min(340px, calc(100vw - 48px), calc((100vh - 140px) * 360 / 618)); aspect-ratio: 360 / 618; background: var(--page); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
 .pop-viewport { position: absolute; inset: 0; overflow: hidden; }
 .pop-track { display: flex; height: 100%; transition: transform .5s ease; }
 .pop-slide { flex: 0 0 100%; height: 100%; display: grid; place-items: center; background: var(--photo) center / cover no-repeat; color: #3a3a3a; font-size: 22px; font-weight: 300; text-align: center; line-height: 1.6; }
@@ -187,11 +187,11 @@ body { overflow-x: clip; }
 .pop-viewport { touch-action: pan-y; }
 .pop-track.dragging { transition: none; }
 /* 新增圖片：複製一個 <a class="pop-slide"> 區塊即可自動變成輪播；換成實際圖片：<a class="pop-slide" href="連結" style="background-image:url('xxx.jpg')" aria-label="說明"></a> 並移除內文 */
-.pop-close { position: absolute; top: -48px; right: 0; width: 38px; height: 38px; border-radius: 50%; border: 0; background: #fff; color: #2B2B2B; font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.pop-close { position: absolute; top: 10px; right: 10px; z-index: 3; width: 36px; height: 36px; box-shadow: 0 2px 10px rgba(0,0,0,.25); border-radius: 50%; border: 0; background: #fff; color: #2B2B2B; font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
 .pop-close:hover { background: #ececec; }
-/* 手機：用「實際可見高度」(svh) 計算，扣掉上方關閉鍵與瀏覽器工具列，確保關閉鍵不被遮住 */
-@supports (height: 100svh) { .pop-panel { width: min(340px, calc(100vw - 56px), calc((100svh - 170px) * 360 / 618)); } }
-.popup { padding: calc(56px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+/* 關閉鍵放在彈窗圖片右上角內側，不會被畫面頂端或瀏覽器工具列切到；尺寸用「實際可見高度」(svh) 計算 */
+@supports (height: 100svh) { .pop-panel { width: min(340px, calc(100vw - 48px), calc((100svh - 140px) * 360 / 618)); } }
+.popup { padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
 .pop-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.85); color: #2B2B2B; font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
 .pop-nav:hover { background: #fff; }
 .pop-nav[hidden], .pop-dots[hidden] { display: none; }
