@@ -61,7 +61,8 @@ img, svg { max-width: 100%; }
 .utility { position: absolute; right: 5%; top: 40px; display: flex; gap: 42px; }
 .utility a { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; min-width: 56px; }
 .utility svg { width: 26px; height: 26px; }
-.site-header { overflow-x: clip; }
+/* 防止電腦版下拉選單的滿版底色造成橫向捲動：改在 body 裁切，不裁 Header（Safari 會把 Header 下方的選單一起裁掉） */
+body { overflow-x: clip; }
 .main-nav a[aria-haspopup]::after { content: ""; display: inline-block; margin-left: 6px; border: 4px solid transparent; border-top: 5px solid currentColor; vertical-align: -1px; transition: transform .2s; }
 .main-nav a[aria-haspopup][aria-expanded="true"] { border-bottom-color: var(--ink); }
 .main-nav a[aria-haspopup][aria-expanded="true"]::after { transform: translateY(-4px) rotate(180deg); }
@@ -179,6 +180,12 @@ img, svg { max-width: 100%; }
 .pop-track { display: flex; height: 100%; transition: transform .5s ease; }
 .pop-slide { flex: 0 0 100%; height: 100%; display: grid; place-items: center; background: var(--photo) center / cover no-repeat; color: #3a3a3a; font-size: 22px; font-weight: 300; text-align: center; line-height: 1.6; }
 .pop-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* iPhone Safari：避免圖片原始寬度把每張撐寬、露出下一張 */
+.pop-track { width: 100%; }
+.pop-slide { min-width: 0; max-width: 100%; overflow: hidden; }
+.pop-slide img { min-width: 0; max-width: 100%; -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+.pop-viewport { touch-action: pan-y; }
+.pop-track.dragging { transition: none; }
 /* 新增圖片：複製一個 <a class="pop-slide"> 區塊即可自動變成輪播；換成實際圖片：<a class="pop-slide" href="連結" style="background-image:url('xxx.jpg')" aria-label="說明"></a> 並移除內文 */
 .pop-close { position: absolute; top: -48px; right: 0; width: 38px; height: 38px; border-radius: 50%; border: 0; background: #fff; color: #2B2B2B; font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
 .pop-close:hover { background: #ececec; }
@@ -2190,6 +2197,8 @@ main:focus { outline: none; }
   .nav-backdrop { display: block; position: fixed; inset: 0; z-index: 4; background: rgba(0,0,0,.28); }
   .nav-backdrop[hidden] { display: none; }
   .site-header { position: relative; z-index: 6; }
+  /* iPhone Safari：overflow-x: clip 會連帶把下拉選單（超出 Header 高度的部分）裁掉，手機版改為不裁切 */
+  .site-header { overflow: visible; }
 }
 
 /* Footer：電腦版維持原樣；手機版改成可收合的清單（參考 LV 官網手機版，不放「與我們對話」） */
@@ -4030,6 +4039,32 @@ main:focus { outline: none; }
   $('popPrev').addEventListener('click', function () { popGo(popIdx - 1); popAuto(); });
   $('popNext').addEventListener('click', function () { popGo(popIdx + 1); popAuto(); });
   popup.addEventListener('click', function (e) { if (e.target === popup) closePopup(); });
+  /* 手指左右滑動換張（畫面跟著手指移動，放開後滑到下一張或彈回） */
+  (function () {
+    var vp = popTrack.parentElement, sx = null, sy = 0, dx = 0, t0 = 0, drag = false, moved = false;
+    vp.addEventListener('pointerdown', function (e) {
+      if (popN < 2 || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      sx = e.clientX; sy = e.clientY; dx = 0; t0 = Date.now(); drag = false; moved = false; popStop();
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (sx === null) return;
+      var mx = e.clientX - sx, my = e.clientY - sy;
+      if (!drag) { if (Math.abs(mx) < 6) return; if (Math.abs(my) > Math.abs(mx)) { sx = null; return; } drag = true; popTrack.classList.add('dragging'); }
+      dx = mx; moved = true;
+      popTrack.style.transform = 'translateX(calc(-' + (popIdx * 100) + '% + ' + dx + 'px))';
+    });
+    function end() {
+      if (sx === null) return; sx = null; popTrack.classList.remove('dragging');
+      if (!drag) { popAuto(); return; }
+      var w = vp.offsetWidth, fast = Math.abs(dx) > 25 && Date.now() - t0 < 250;
+      if (Math.abs(dx) > w * 0.2 || fast) popGo(popIdx + (dx < 0 ? 1 : -1)); else popGo(popIdx);
+      popAuto();
+    }
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', function () { if (sx !== null) { sx = null; popTrack.classList.remove('dragging'); popGo(popIdx); popAuto(); } });
+    vp.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    vp.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  })();
   popup.addEventListener('mouseover', popStop);
   popup.addEventListener('mouseout', popAuto);
   popup.addEventListener('focusin', popStop);
