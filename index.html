@@ -2256,6 +2256,12 @@ main:focus { outline: none; }
   #view-home > .hero { max-width: none; width: 100%; height: auto; aspect-ratio: 2560 / 600; background: #1f2a22; }
   #view-home > .hero .hero-video { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   #view-home > .hero .hero-slide, #view-home > .hero .hero-nav, #view-home > .hero .hero-dots { display: none !important; }
+  /* 影片檔讀不到時（例如沒上傳 hero-video.mp4），自動退回原本的圖片輪播，不會出現一整塊空白 */
+  #view-home > .hero.hero-novideo { max-width: var(--w); height: 600px; aspect-ratio: auto; background: #dfe8f3; }
+  #view-home > .hero.hero-novideo .hero-video { display: none; }
+  #view-home > .hero.hero-novideo .hero-slide, #view-home > .hero.hero-novideo .hero-dots { display: block !important; }
+  #view-home > .hero.hero-novideo .hero-dots { display: flex !important; }
+  #view-home > .hero.hero-novideo .hero-nav { display: grid !important; }
 }
 </style>
 </head>
@@ -4021,6 +4027,8 @@ main:focus { outline: none; }
   (function () {
     var v = document.getElementById('heroVideo'); if (!v) return;
     var mq = window.matchMedia('(min-width: 901px)'), rm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function fail() { v.closest('.hero').classList.add('hero-novideo'); console.warn('[全球真愛] 找不到 ' + v.dataset.src + '，已改用圖片輪播。請確認影片檔和 index.html 放在同一個資料夾。'); }
+    v.addEventListener('error', fail);
     function sync() {
       if (mq.matches) {
         if (!v.getAttribute('src')) { v.poster = v.dataset.poster; v.src = v.dataset.src; }
