@@ -4423,9 +4423,9 @@ main:focus { outline: none; }
   ];
   /* 每組版面：[left%, top%, 寬px, 視差速度]；高度依照片比例 */
   var TL_LAYOUTS = [
-    [[9, 9, 340, .5], [62, 7, 360, .9], [11, 62, 320, .7], [64, 59, 340, .4]],
-    [[10, 7, 330, .8], [63, 10, 350, .4], [12, 61, 340, .6], [63, 57, 330, 1]],
-    [[8, 13, 350, .6], [63, 6, 330, .9], [13, 62, 320, .5], [64, 60, 340, .8]]
+    [[5, 8, 430, .5], [62, 6, 450, .9], [8, 60, 410, .7], [64, 57, 430, .4]],
+    [[7, 6, 420, .8], [63, 9, 440, .4], [6, 59, 430, .6], [63, 56, 420, 1]],
+    [[4, 11, 440, .6], [63, 5, 420, .9], [9, 60, 410, .5], [64, 58, 430, .8]]
   ];
   var tlSec = $('b-tl'), tlStage = $('tlStage'), tlIndex = $('tlIndex'), tlPanels = $('tlPanels');
   var tlRefs = [];
@@ -4449,7 +4449,7 @@ main:focus { outline: none; }
   });
   function sizeTLItems() {
     var vw = window.innerWidth, vh = window.innerHeight;
-    var sc = vw <= 900 ? (vw * 0.44) / 340 : Math.max(.52, Math.min(1.15, Math.min(vw / 1280, vh / 820)));
+    var sc = vw <= 900 ? (vw * 0.44) / 430 : Math.max(.6, Math.min(1.6, Math.min(vw / 1440, vh / 860)));
     tlRefs.forEach(function (R) { R.items.forEach(function (o) {
       var w = Math.round(o.w * sc), h = Math.round(w / o.ratio);
       o.el.style.width = w + 'px'; o.el.style.height = h + 'px';
@@ -4458,7 +4458,8 @@ main:focus { outline: none; }
         o.el.style.left = right ? 'auto' : '4%'; o.el.style.right = right ? '4%' : 'auto';
         o.el.style.top = (o.top > 50 ? o.top + 12 : Math.max(o.top, 11) + 1) + '%';
       } else {
-        o.el.style.left = o.left + '%'; o.el.style.right = 'auto';
+        var rt = o.left > 40;
+        o.el.style.left = rt ? 'auto' : o.left + '%'; o.el.style.right = rt ? (100 - o.left - 30) + '%' : 'auto';
         o.el.style.top = o.top + '%';
       }
     }); });
